@@ -57,13 +57,13 @@ static void render_callback(Canvas* canvas, void* _ctx) {
             portrait = &I_passport_okay_46x49;
             mood_str = "Mood: Happy";
         } else if(stats->butthurt <= 6) {
-            portrait = &I_passport_okay_46x49;
+            portrait = &I_passport_okay1_46x49;
             mood_str = "Mood: Okay";
         } else if(stats->butthurt <= 8) {
-            portrait = &I_passport_bad_46x49;
+            portrait = &I_passport_lonely_46x49;
             mood_str = "Mood: Lonely";
         } else {
-            portrait = &I_passport_bad_46x49;
+            portrait = &I_passport_bad1_46x49;
             mood_str = "Mood: Angry";
         }
     }
