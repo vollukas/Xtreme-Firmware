@@ -12,6 +12,8 @@ enum SubGhzSettingIndex {
     SubGhzSettingIndexRAWRSSIThreshold = SubGhzSettingIndexBinRAW,
     SubGhzSettingIndexRepeater,
     SubGhzSettingIndexRemoveDuplicates,
+    SubGhzSettingIndexDeleteOldSignals,
+    SubGhzSettingIndexAutosave,
     SubGhzSettingIndexIgnoreStarline,
     SubGhzSettingIndexIgnoreCars,
     SubGhzSettingIndexIgnoreMagellan,
@@ -19,7 +21,6 @@ enum SubGhzSettingIndex {
     SubGhzSettingIndexIgnoreNiceFlorS,
     SubGhzSettingIndexIgnoreWeather,
     SubGhzSettingIndexIgnoreTPMS,
-    SubGhzSettingIndexDeleteOldSignals,
     SubGhzSettingIndexSound,
     SubGhzSettingIndexResetToDefault,
     SubGhzSettingIndexLock,
@@ -346,6 +347,24 @@ static void subghz_scene_receiver_config_set_duplicates(VariableItem* item) {
     if(index) subghz_history_remove_duplicates(subghz->history);
 }
 
+static void subghz_scene_receiver_config_set_delete_old_signals(VariableItem* item) {
+    SubGhz* subghz = variable_item_get_context(item);
+    uint8_t index = variable_item_get_current_value_index(item);
+
+    variable_item_set_current_value_text(item, combobox_text[index]);
+
+    subghz->last_settings->delete_old_signals = index == 1;
+}
+
+static void subghz_scene_receiver_config_set_autosave(VariableItem* item) {
+    SubGhz* subghz = variable_item_get_context(item);
+    uint8_t index = variable_item_get_current_value_index(item);
+
+    variable_item_set_current_value_text(item, combobox_text[index]);
+
+    subghz->last_settings->autosave = index == 1;
+}
+
 static inline bool subghz_scene_receiver_config_ignore_filter_get_index(
     SubGhzProtocolFilter filter,
     SubGhzProtocolFilter flag) {
@@ -377,15 +396,6 @@ static void subghz_scene_receiver_config_set_weather(VariableItem* item) {
 }
 static void subghz_scene_receiver_config_set_tpms(VariableItem* item) {
     subghz_scene_receiver_config_set_ignore_filter(item, SubGhzProtocolFilter_TPMS);
-}
-
-static void subghz_scene_receiver_config_set_delete_old_signals(VariableItem* item) {
-    SubGhz* subghz = variable_item_get_context(item);
-    uint8_t index = variable_item_get_current_value_index(item);
-
-    variable_item_set_current_value_text(item, combobox_text[index]);
-
-    subghz->last_settings->delete_old_signals = index == 1;
 }
 
 static void subghz_scene_receiver_config_var_list_enter_callback(void* context, uint32_t index) {
@@ -427,6 +437,7 @@ static void subghz_scene_receiver_config_var_list_enter_callback(void* context, 
         subghz->last_settings->repeater_state = SubGhzRepeaterStateOff;
         subghz->repeater = SubGhzRepeaterStateOff;
         subghz->last_settings->delete_old_signals = false;
+        subghz->last_settings->autosave = false;
 
         subghz_txrx_speaker_set_state(subghz->txrx, speaker_value[default_index]);
         subghz->last_settings->enable_sound = false;
@@ -537,6 +548,28 @@ void subghz_scene_receiver_config_on_enter(void* context) {
 
         item = variable_item_list_add(
             subghz->variable_item_list,
+            "Delete Old Signals on Full Memory",
+            COMBO_BOX_COUNT,
+            subghz_scene_receiver_config_set_delete_old_signals,
+            subghz);
+
+        value_index = subghz->last_settings->delete_old_signals;
+        variable_item_set_current_value_index(item, value_index);
+        variable_item_set_current_value_text(item, combobox_text[value_index]);
+
+        item = variable_item_list_add(
+            subghz->variable_item_list,
+            "Autosave",
+            COMBO_BOX_COUNT,
+            subghz_scene_receiver_config_set_autosave,
+            subghz);
+
+        value_index = subghz->last_settings->autosave;
+        variable_item_set_current_value_index(item, value_index);
+        variable_item_set_current_value_text(item, combobox_text[value_index]);
+
+        item = variable_item_list_add(
+            subghz->variable_item_list,
             "Ignore Starline",
             COMBO_BOX_COUNT,
             subghz_scene_receiver_config_set_starline,
@@ -616,17 +649,6 @@ void subghz_scene_receiver_config_on_enter(void* context) {
 
         value_index = subghz_scene_receiver_config_ignore_filter_get_index(
             subghz->ignore_filter, SubGhzProtocolFilter_TPMS);
-        variable_item_set_current_value_index(item, value_index);
-        variable_item_set_current_value_text(item, combobox_text[value_index]);
-
-        item = variable_item_list_add(
-            subghz->variable_item_list,
-            "Delete Old Signals on Full Memory",
-            COMBO_BOX_COUNT,
-            subghz_scene_receiver_config_set_delete_old_signals,
-            subghz);
-
-        value_index = subghz->last_settings->delete_old_signals;
         variable_item_set_current_value_index(item, value_index);
         variable_item_set_current_value_text(item, combobox_text[value_index]);
     }

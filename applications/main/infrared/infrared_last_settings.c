@@ -8,6 +8,7 @@
 
 #define INFRARED_LAST_SETTINGS_FIELD_EXTPOWER "External5V"
 #define INFRARED_LAST_SETTINGS_FIELD_EXTOUT "ExternalOut"
+#define INFRARED_LAST_SETTINGS_FIELD_AUTO_DETECT "AutoDetect"
 
 InfraredLastSettings* infrared_last_settings_alloc(void) {
     InfraredLastSettings* instance = malloc(sizeof(InfraredLastSettings));
@@ -27,6 +28,7 @@ void infrared_last_settings_load(InfraredLastSettings* instance) {
 
     bool temp_extpower = false;
     bool temp_extout = false;
+    bool temp_auto_detect = false;
 
     if(FSE_OK == storage_sd_status(storage) && INFRARED_LAST_SETTINGS_PATH &&
        flipper_format_file_open_existing(fff_data_file, INFRARED_LAST_SETTINGS_PATH)) {
@@ -34,12 +36,15 @@ void infrared_last_settings_load(InfraredLastSettings* instance) {
             fff_data_file, INFRARED_LAST_SETTINGS_FIELD_EXTPOWER, (bool*)&temp_extpower, 1);
         flipper_format_read_bool(
             fff_data_file, INFRARED_LAST_SETTINGS_FIELD_EXTOUT, (bool*)&temp_extout, 1);
+        flipper_format_read_bool(
+            fff_data_file, INFRARED_LAST_SETTINGS_FIELD_AUTO_DETECT, (bool*)&temp_auto_detect, 1);
     } else {
         FURI_LOG_E(TAG, "Error open file %s", INFRARED_LAST_SETTINGS_PATH);
     }
 
     instance->ext_5v = temp_extpower;
     instance->ext_out = temp_extout;
+    instance->auto_detect = temp_auto_detect;
 
     flipper_format_file_close(fff_data_file);
     flipper_format_free(fff_data_file);
@@ -71,6 +76,9 @@ bool infrared_last_settings_save(InfraredLastSettings* instance) {
             break;
         if(!flipper_format_insert_or_update_bool(
                file, INFRARED_LAST_SETTINGS_FIELD_EXTOUT, &instance->ext_out, 1))
+            break;
+        if(!flipper_format_insert_or_update_bool(
+               file, INFRARED_LAST_SETTINGS_FIELD_AUTO_DETECT, &instance->auto_detect, 1))
             break;
 
         saved = true;

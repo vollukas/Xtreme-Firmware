@@ -1320,7 +1320,10 @@ Function,+,furi_hal_infrared_async_tx_start,void,"uint32_t, float"
 Function,+,furi_hal_infrared_async_tx_stop,void,
 Function,+,furi_hal_infrared_async_tx_wait_termination,void,
 Function,+,furi_hal_infrared_get_debug_out_status,_Bool,
+Function,+,furi_hal_infrared_is_auto_detect_enabled,_Bool,
 Function,+,furi_hal_infrared_is_busy,_Bool,
+Function,+,furi_hal_infrared_is_external_connected,_Bool,
+Function,+,furi_hal_infrared_set_auto_detect,void,_Bool
 Function,+,furi_hal_infrared_set_debug_out,void,_Bool
 Function,-,furi_hal_init,void,
 Function,-,furi_hal_init_early,void,
@@ -2526,9 +2529,9 @@ Function,-,music_worker_stop,void,MusicWorker*
 Function,+,name_generator_make_auto,void,"char*, size_t, const char*"
 Function,+,name_generator_make_auto_datetime,void,"char*, size_t, const char*, FuriHalRtcDateTime*"
 Function,+,name_generator_make_detailed,void,"char*, size_t, const char*"
-Function,+,name_generator_make_detailed_datetime,void,"char*, size_t, const char*, FuriHalRtcDateTime*"
+Function,+,name_generator_make_detailed_datetime,void,"char*, size_t, const char*, FuriHalRtcDateTime*, _Bool"
 Function,+,name_generator_make_random,void,"char*, size_t"
-Function,+,name_generator_make_random_prefixed,void,"char*, size_t, const char*"
+Function,+,name_generator_make_random_prefixed,void,"char*, size_t, const char*, _Bool"
 Function,-,nan,double,const char*
 Function,-,nanf,float,const char*
 Function,-,nanl,long double,const char*

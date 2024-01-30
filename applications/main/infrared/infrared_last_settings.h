@@ -7,6 +7,7 @@
 typedef struct {
     bool ext_5v;
     bool ext_out;
+    bool auto_detect;
 } InfraredLastSettings;
 
 InfraredLastSettings* infrared_last_settings_alloc(void);
