@@ -65,6 +65,7 @@ enum LfRfidCustomEvent {
     LfRfidEventWriteTooLongToWrite,
     LfRfidEventRpcLoadFile,
     LfRfidEventRpcSessionClose,
+    LfRfidEventEmulationTimeExpired,
 };
 
 typedef enum {
@@ -111,6 +112,8 @@ struct LfRfid {
 
     // Custom views
     LfRfidReadView* read_view;
+
+    bool fav_timeout;
 };
 
 typedef enum {

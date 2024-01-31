@@ -1,5 +1,5 @@
 entry,status,name,type,params
-Version,+,53.0,,
+Version,+,54.0,,
 Header,+,applications/drivers/subghz/cc1101_ext/cc1101_ext_interconnect.h,,
 Header,+,applications/main/archive/helpers/archive_helpers_ext.h,,
 Header,+,applications/services/applications.h,,
@@ -126,6 +126,8 @@ Header,+,lib/nfc/nfc_device.h,,
 Header,+,lib/nfc/nfc_listener.h,,
 Header,+,lib/nfc/nfc_poller.h,,
 Header,+,lib/nfc/nfc_scanner.h,,
+Header,+,lib/nfc/protocols/emv/emv.h,,
+Header,+,lib/nfc/protocols/emv/emv_poller.h,,
 Header,+,lib/nfc/protocols/iso14443_3a/iso14443_3a.h,,
 Header,+,lib/nfc/protocols/iso14443_3a/iso14443_3a_listener.h,,
 Header,+,lib/nfc/protocols/iso14443_3a/iso14443_3a_poller.h,,
@@ -911,6 +913,26 @@ Function,+,elf_symbolname_hash,uint32_t,const char*
 Function,+,empty_screen_alloc,EmptyScreen*,
 Function,+,empty_screen_free,void,EmptyScreen*
 Function,+,empty_screen_get_view,View*,EmptyScreen*
+Function,+,emv_alloc,EmvData*,
+Function,+,emv_copy,void,"EmvData*, const EmvData*"
+Function,+,emv_free,void,EmvData*
+Function,+,emv_get_base_data,Iso14443_4aData*,const EmvData*
+Function,+,emv_get_device_name,const char*,"const EmvData*, NfcDeviceNameType"
+Function,+,emv_get_uid,const uint8_t*,"const EmvData*, size_t*"
+Function,+,emv_is_equal,_Bool,"const EmvData*, const EmvData*"
+Function,+,emv_load,_Bool,"EmvData*, FlipperFormat*, uint32_t"
+Function,+,emv_poller_get_last_online_atc,EmvError,EmvPoller*
+Function,+,emv_poller_get_pin_try_counter,EmvError,EmvPoller*
+Function,+,emv_poller_get_processing_options,EmvError,EmvPoller*
+Function,+,emv_poller_read_afl,EmvError,EmvPoller*
+Function,+,emv_poller_read_log_entry,EmvError,EmvPoller*
+Function,+,emv_poller_read_sfi_record,EmvError,"EmvPoller*, uint8_t, uint8_t"
+Function,+,emv_poller_select_application,EmvError,EmvPoller*
+Function,+,emv_poller_select_ppse,EmvError,EmvPoller*
+Function,+,emv_reset,void,EmvData*
+Function,+,emv_save,_Bool,"const EmvData*, FlipperFormat*"
+Function,+,emv_set_uid,_Bool,"EmvData*, const uint8_t*, size_t"
+Function,+,emv_verify,_Bool,"EmvData*, const FuriString*"
 Function,-,erand48,double,unsigned short[3]
 Function,-,erf,double,double
 Function,-,erfc,double,double
@@ -926,8 +948,8 @@ Function,-,exp2,double,double
 Function,-,exp2f,float,float
 Function,-,exp2l,long double,long double
 Function,+,expansion_disable,void,Expansion*
-Function,+,expansion_enable,void,"Expansion*, FuriHalSerialId"
-Function,+,expansion_resume,void,Expansion*
+Function,+,expansion_enable,void,Expansion*
+Function,+,expansion_set_listen_serial,void,"Expansion*, FuriHalSerialId"
 Function,-,expf,float,float
 Function,-,expl,long double,long double
 Function,-,explicit_bzero,void,"void*, size_t"
@@ -2020,6 +2042,7 @@ Function,+,iso14443_4a_load,_Bool,"Iso14443_4aData*, FlipperFormat*, uint32_t"
 Function,+,iso14443_4a_poller_halt,Iso14443_4aError,Iso14443_4aPoller*
 Function,+,iso14443_4a_poller_read_ats,Iso14443_4aError,"Iso14443_4aPoller*, Iso14443_4aAtsData*"
 Function,+,iso14443_4a_poller_send_block,Iso14443_4aError,"Iso14443_4aPoller*, const BitBuffer*, BitBuffer*"
+Function,+,iso14443_4a_poller_send_block_pwt_ext,Iso14443_4aError,"Iso14443_4aPoller*, const BitBuffer*, BitBuffer*"
 Function,+,iso14443_4a_reset,void,Iso14443_4aData*
 Function,+,iso14443_4a_save,_Bool,"const Iso14443_4aData*, FlipperFormat*"
 Function,+,iso14443_4a_set_uid,_Bool,"Iso14443_4aData*, const uint8_t*, size_t"
@@ -3624,7 +3647,7 @@ Variable,+,I_Modern_reader_18x34,Icon,
 Variable,+,I_More_data_placeholder_5x7,Icon,
 Variable,+,I_Move_flipper_26x39,Icon,
 Variable,+,I_Muted_8x8,Icon,
-Variable,+,I_NFC_dolphin_emulation_47x61,Icon,
+Variable,+,I_NFC_dolphin_emulation_51x64,Icon,
 Variable,+,I_NFC_manual_60x50,Icon,
 Variable,+,I_Nfc_10px,Icon,
 Variable,+,I_Ok_btn_9x9,Icon,
@@ -3996,6 +4019,7 @@ Variable,+,message_red_255,const NotificationMessage,
 Variable,+,message_sound_off,const NotificationMessage,
 Variable,+,message_vibro_off,const NotificationMessage,
 Variable,+,message_vibro_on,const NotificationMessage,
+Variable,-,nfc_device_emv,const NfcDeviceBase,
 Variable,-,nfc_device_mf_classic,const NfcDeviceBase,
 Variable,-,nfc_device_mf_desfire,const NfcDeviceBase,
 Variable,-,nfc_device_mf_ultralight,const NfcDeviceBase,
