@@ -26,7 +26,7 @@ void lfrfid_scene_saved_key_menu_on_enter(void* context) {
         submenu, "Write", SubmenuIndexWrite, lfrfid_scene_saved_key_menu_submenu_callback, app);
     submenu_add_item(
         submenu,
-        "Write and set password",
+        "Write and set pass",
         SubmenuIndexWriteAndSetPass,
         lfrfid_scene_saved_key_menu_submenu_callback,
         app);

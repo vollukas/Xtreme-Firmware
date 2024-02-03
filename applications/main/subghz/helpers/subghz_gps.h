@@ -1,6 +1,5 @@
 #include <furi_hal.h>
 #include <xtreme/xtreme.h>
-#include <expansion/expansion.h>
 
 #define UART_CH (xtreme_settings.uart_nmea_channel)
 
@@ -14,7 +13,6 @@ typedef enum {
 #define WORKER_ALL_RX_EVENTS (WorkerEvtStop | WorkerEvtRxDone)
 
 typedef struct {
-    Expansion* expansion;
     FuriThread* thread;
     FuriStreamBuffer* rx_stream;
     uint8_t rx_buf[RX_BUF_SIZE];
