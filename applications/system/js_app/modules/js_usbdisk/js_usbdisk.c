@@ -1,5 +1,6 @@
 #include "../../js_modules.h"
 #include <furi_hal_usb.h>
+#include <toolbox/path.h>
 #include "mass_storage_usb.h"
 
 #define TAG "JsUsbdisk"
@@ -71,6 +72,76 @@ static void js_usbdisk_internal_stop_free(JsUsbdiskInst* usbdisk) {
     }
 }
 
+static void js_usbdisk_create_image(struct mjs* mjs) {
+    size_t size = 0;
+    const char* path = NULL;
+
+    const char* error = NULL;
+    do {
+        if(mjs_nargs(mjs) != 2) {
+            error = "Wrong argument count";
+            break;
+        }
+
+        mjs_val_t path_arg = mjs_arg(mjs, 0);
+        if(!mjs_is_string(path_arg)) {
+            error = "Path must be a string";
+            break;
+        }
+
+        size_t path_len = 0;
+        path = mjs_get_string(mjs, &path_arg, &path_len);
+        if((path_len == 0) || (path == NULL)) {
+            error = "Bad path argument";
+            break;
+        }
+
+        mjs_val_t size_arg = mjs_arg(mjs, 1);
+        if(!mjs_is_number(size_arg)) {
+            error = "Size must be a number";
+            break;
+        }
+
+        size = (size_t)mjs_get_int32(mjs, size_arg);
+    } while(0);
+
+    if(!error) {
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        File* file = storage_file_alloc(storage);
+        do {
+            if(!storage_file_open(file, path, FSAM_READ | FSAM_WRITE, FSOM_CREATE_NEW)) {
+                error = storage_file_get_error_desc(file);
+                break;
+            }
+
+            if(!storage_file_expand(file, size)) {
+                error = storage_file_get_error_desc(file);
+                break;
+            }
+
+            error = "Image formatting failed";
+            if(storage_virtual_init(storage, file) != FSE_OK) {
+                if(storage_virtual_quit(storage) != FSE_OK) break;
+                if(storage_virtual_init(storage, file) != FSE_OK) break;
+            }
+            if(storage_virtual_format(storage) == FSE_OK) {
+                error = NULL;
+            }
+            storage_virtual_quit(storage);
+        } while(0);
+        storage_file_free(file);
+        furi_record_close(RECORD_STORAGE);
+    }
+
+    if(error) {
+        mjs_prepend_errorf(mjs, MJS_BAD_ARGS_ERROR, "%s", error);
+        mjs_return(mjs, MJS_UNDEFINED);
+        return;
+    }
+
+    mjs_return(mjs, MJS_UNDEFINED);
+}
+
 static void js_usbdisk_start(struct mjs* mjs) {
     mjs_val_t obj_inst = mjs_get(mjs, mjs_get_this(mjs), INST_PROP_NAME, ~0);
     JsUsbdiskInst* usbdisk = mjs_get_ptr(mjs, obj_inst);
@@ -128,7 +199,10 @@ static void js_usbdisk_start(struct mjs* mjs) {
 
     furi_hal_usb_unlock();
     usbdisk->was_ejected = false;
-    usbdisk->usb = mass_storage_usb_start(usbdisk->path, fn);
+    FuriString* name = furi_string_alloc();
+    path_extract_filename_no_ext(usbdisk->path, name);
+    usbdisk->usb = mass_storage_usb_start(furi_string_get_cstr(name), fn);
+    furi_string_free(name);
 
     mjs_return(mjs, MJS_UNDEFINED);
 }
@@ -167,6 +241,7 @@ static void* js_usbdisk_create(struct mjs* mjs, mjs_val_t* object) {
     JsUsbdiskInst* usbdisk = malloc(sizeof(JsUsbdiskInst));
     mjs_val_t usbdisk_obj = mjs_mk_object(mjs);
     mjs_set(mjs, usbdisk_obj, INST_PROP_NAME, ~0, mjs_mk_foreign(mjs, usbdisk));
+    mjs_set(mjs, usbdisk_obj, "createImage", ~0, MJS_MK_FN(js_usbdisk_create_image));
     mjs_set(mjs, usbdisk_obj, "start", ~0, MJS_MK_FN(js_usbdisk_start));
     mjs_set(mjs, usbdisk_obj, "stop", ~0, MJS_MK_FN(js_usbdisk_stop));
     mjs_set(mjs, usbdisk_obj, "wasEjected", ~0, MJS_MK_FN(js_usbdisk_was_ejected));

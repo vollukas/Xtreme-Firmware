@@ -44,9 +44,12 @@ libs = env.BuildModules(
         "update_util",
         "xtreme",
         "heatshrink",
+        "ble_profile",
         "bit_lib",
         "datetime",
     ],
 )
+
+env.Append(SDK_HEADERS=[File("#/lib/callback-connector/callback-connector.h")])
 
 Return("libs")
