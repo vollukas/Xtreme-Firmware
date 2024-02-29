@@ -48,7 +48,7 @@ static void desktop_lock_icon_draw_callback(Canvas* canvas, void* context) {
 static void desktop_clock_update(Desktop* desktop) {
     furi_assert(desktop);
 
-    FuriHalRtcDateTime curr_dt;
+    DateTime curr_dt;
     furi_hal_rtc_get_datetime(&curr_dt);
     bool time_format_12 = locale_get_time_format() == LocaleTimeFormat12h;
 
@@ -292,7 +292,6 @@ Desktop* desktop_alloc() {
         desktop->view_dispatcher, desktop_back_event_callback);
 
     desktop->lock_menu = desktop_lock_menu_alloc();
-    desktop->debug_view = desktop_debug_alloc();
     desktop->hw_mismatch_popup = popup_alloc();
     desktop->locked_view = desktop_view_locked_alloc();
     desktop->pin_input_view = desktop_view_pin_input_alloc();
@@ -326,8 +325,6 @@ Desktop* desktop_alloc() {
         desktop->view_dispatcher,
         DesktopViewIdLockMenu,
         desktop_lock_menu_get_view(desktop->lock_menu));
-    view_dispatcher_add_view(
-        desktop->view_dispatcher, DesktopViewIdDebug, desktop_debug_get_view(desktop->debug_view));
     view_dispatcher_add_view(
         desktop->view_dispatcher,
         DesktopViewIdHwMismatch,

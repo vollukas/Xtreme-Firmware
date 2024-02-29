@@ -10,13 +10,17 @@
 #define ICONS_FMT XTREME_ASSETS_PATH "/%s/Icons/%s"
 #define FONTS_FMT XTREME_ASSETS_PATH "/%s/Fonts/%s.u8f"
 
+// See lib/u8g2/u8g2_font.c
+#define U8G2_FONT_DATA_STRUCT_SIZE 23
+
 XtremeAssets xtreme_assets = {
     .is_nsfw = false,
     .fonts = {NULL},
     .font_params = {NULL},
 };
 
-void load_icon_animated(const Icon* replace, const char* name, FuriString* path, File* file) {
+static void
+    load_icon_animated(const Icon* replace, const char* name, FuriString* path, File* file) {
     const char* pack = xtreme_settings.asset_pack;
     furi_string_printf(path, ICONS_FMT "/meta", pack, name);
     if(storage_file_open(file, furi_string_get_cstr(path), FSAM_READ, FSOM_OPEN_EXISTING)) {
@@ -67,7 +71,7 @@ void load_icon_animated(const Icon* replace, const char* name, FuriString* path,
     storage_file_close(file);
 }
 
-void load_icon_static(const Icon* replace, const char* name, FuriString* path, File* file) {
+static void load_icon_static(const Icon* replace, const char* name, FuriString* path, File* file) {
     furi_string_printf(path, ICONS_FMT ".bmx", xtreme_settings.asset_pack, name);
     if(storage_file_open(file, furi_string_get_cstr(path), FSAM_READ, FSOM_OPEN_EXISTING)) {
         uint64_t size = storage_file_size(file) - 8;
@@ -94,7 +98,7 @@ void load_icon_static(const Icon* replace, const char* name, FuriString* path, F
     storage_file_close(file);
 }
 
-void free_icon(const Icon* icon) {
+static void free_icon(const Icon* icon) {
     uint8_t** frames = (void*)icon->frames;
     int32_t frame_count = icon->frame_count;
 
@@ -108,19 +112,20 @@ void free_icon(const Icon* icon) {
     free(frames);
 }
 
-void load_font(FontSwap font, const char* name, FuriString* path, File* file) {
+static void load_font(Font font, const char* name, FuriString* path, File* file) {
     furi_string_printf(path, FONTS_FMT, xtreme_settings.asset_pack, name);
     if(storage_file_open(file, furi_string_get_cstr(path), FSAM_READ, FSOM_OPEN_EXISTING)) {
         uint64_t size = storage_file_size(file);
         uint8_t* swap = malloc(size);
 
-        if(size > 20 && storage_file_read(file, swap, size) == size) {
+        if(size > U8G2_FONT_DATA_STRUCT_SIZE && storage_file_read(file, swap, size) == size) {
             xtreme_assets.fonts[font] = swap;
             CanvasFontParameters* params = malloc(sizeof(CanvasFontParameters));
+            // See lib/u8g2/u8g2_font.c
             params->leading_default = swap[10]; // max_char_height
             params->leading_min = params->leading_default - 2; // good enough
-            params->height = swap[13]; // ascent_A
-            params->descender = swap[19]; // start_pos_lower_a
+            params->height = MAX((int8_t)swap[15], 0); // ascent_para
+            params->descender = MAX((int8_t)swap[16], 0); // descent_para
             xtreme_assets.font_params[font] = params;
         } else {
             free(swap);
@@ -129,7 +134,7 @@ void load_font(FontSwap font, const char* name, FuriString* path, File* file) {
     storage_file_close(file);
 }
 
-void free_font(FontSwap font) {
+static void free_font(Font font) {
     free(xtreme_assets.fonts[font]);
     xtreme_assets.fonts[font] = NULL;
     free(xtreme_assets.font_params[font]);
@@ -137,14 +142,14 @@ void free_font(FontSwap font) {
 }
 
 static const char* font_names[] = {
-    [FontSwapPrimary] = "Primary",
-    [FontSwapSecondary] = "Secondary",
-    [FontSwapKeyboard] = "Keyboard",
-    [FontSwapBigNumbers] = "BigNumbers",
-    [FontSwapBatteryPercent] = "BatteryPercent",
+    [FontPrimary] = "Primary",
+    [FontSecondary] = "Secondary",
+    [FontKeyboard] = "Keyboard",
+    [FontBigNumbers] = "BigNumbers",
+    [FontBatteryPercent] = "BatteryPercent",
 };
 
-void XTREME_ASSETS_LOAD() {
+void xtreme_assets_init() {
     const char* pack = xtreme_settings.asset_pack;
     xtreme_assets.is_nsfw = !strncmp(pack, "NSFW", strlen("NSFW"));
     if(pack[0] == '\0') return;
@@ -159,7 +164,7 @@ void XTREME_ASSETS_LOAD() {
 
         for(size_t i = 0; i < ICON_PATHS_COUNT; i++) {
             if(ICON_PATHS[i].icon->original == NULL) {
-                if(ICON_PATHS[i].animated) {
+                if(ICON_PATHS[i].icon->frame_count > 1) {
                     load_icon_animated(ICON_PATHS[i].icon, ICON_PATHS[i].path, p, f);
                 } else {
                     load_icon_static(ICON_PATHS[i].icon, ICON_PATHS[i].path, p, f);
@@ -167,7 +172,7 @@ void XTREME_ASSETS_LOAD() {
             }
         }
 
-        for(FontSwap font = 0; font < FontSwapCount; font++) {
+        for(Font font = 0; font < FontTotalNumber; font++) {
             load_font(font, font_names[font], p, f);
         }
 
@@ -177,14 +182,14 @@ void XTREME_ASSETS_LOAD() {
     furi_record_close(RECORD_STORAGE);
 }
 
-void XTREME_ASSETS_FREE() {
+void xtreme_assets_free() {
     for(size_t i = 0; i < ICON_PATHS_COUNT; i++) {
         if(ICON_PATHS[i].icon->original != NULL) {
             free_icon(ICON_PATHS[i].icon);
         }
     }
 
-    for(FontSwap font = 0; font < FontSwapCount; font++) {
+    for(Font font = 0; font < FontTotalNumber; font++) {
         if(xtreme_assets.fonts[font] != NULL) {
             free_font(font);
         }

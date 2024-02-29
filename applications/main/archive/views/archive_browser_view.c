@@ -19,6 +19,7 @@ static const char* ArchiveTabNames[] = {
     [ArchiveTabU2f] = "U2F",
     [ArchiveTabApplications] = "Apps",
     [ArchiveTabSearch] = "Search",
+    [ArchiveTabDiskImage] = "Disk Image",
     [ArchiveTabInternal] = "Internal",
     [ArchiveTabBrowser] = "Browser",
 };
@@ -35,11 +36,14 @@ static const Icon* ArchiveItemIcons[] = {
     [ArchiveFileTypeBadKb] = &I_badkb_10px,
     [ArchiveFileTypeU2f] = &I_u2f_10px,
     [ArchiveFileTypeApplication] = &I_Apps_10px,
+    [ArchiveFileTypeJS] = &I_js_script_10px,
     [ArchiveFileTypeSearch] = &I_search_10px,
     [ArchiveFileTypeUpdateManifest] = &I_update_10px,
+    [ArchiveFileTypeDiskImage] = &I_floppydisk_10px,
     [ArchiveFileTypeFolder] = &I_dir_10px,
     [ArchiveFileTypeUnknown] = &I_unknown_10px,
     [ArchiveFileTypeLoading] = &I_loading_10px,
+    [ArchiveFileTypeAppOrJs] = &I_unknown_10px,
 };
 
 void archive_browser_set_callback(
@@ -116,7 +120,7 @@ static void render_item_menu(Canvas* canvas, ArchiveBrowserViewModel* model) {
                 if(selected->type != ArchiveFileTypeFolder) {
                     archive_menu_add_item(
                         menu_array_push_raw(model->context_menu),
-                        "Show",
+                        selected->type == ArchiveFileTypeDiskImage ? "Mount" : "Show",
                         ArchiveBrowserEventFileMenuShow);
                 }
             }
@@ -206,7 +210,8 @@ static void draw_list(Canvas* canvas, ArchiveBrowserViewModel* model) {
                 model->files, CLAMP(idx - model->array_offset, (int32_t)(array_size - 1), 0));
             file_type = file->type;
             bool ext = model->tab_idx == ArchiveTabBrowser ||
-                       model->tab_idx == ArchiveTabInternal || model->tab_idx == ArchiveTabSearch;
+                       model->tab_idx == ArchiveTabInternal ||
+                       model->tab_idx == ArchiveTabDiskImage || model->tab_idx == ArchiveTabSearch;
             if(file_type == ArchiveFileTypeApplication) {
                 if(file->custom_icon_data) {
                     custom_icon_data = file->custom_icon_data;

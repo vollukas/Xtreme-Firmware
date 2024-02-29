@@ -27,7 +27,6 @@ typedef enum {
     DesktopViewIdMain,
     DesktopViewIdLockMenu,
     DesktopViewIdLocked,
-    DesktopViewIdDebug,
     DesktopViewIdHwMismatch,
     DesktopViewIdPinInput,
     DesktopViewIdPinTimeout,
@@ -45,7 +44,7 @@ struct Desktop {
 
     Popup* hw_mismatch_popup;
     DesktopLockMenuView* lock_menu;
-    DesktopDebugView* debug_view;
+    DesktopDebugView* _debug_view; // Unused, kept for compatibility
     DesktopViewLocked* locked_view;
     DesktopMainView* main_view;
     DesktopViewPinTimeout* pin_timeout_view;
@@ -81,7 +80,7 @@ struct Desktop {
 
     bool in_transition : 1;
 
-    Keybind keybinds[KeybindTypeCount][KeybindKeyCount];
+    Keybinds keybinds;
 
     FuriPubSub* ascii_events_pubsub;
     FuriPubSubSubscription* ascii_events_subscription;

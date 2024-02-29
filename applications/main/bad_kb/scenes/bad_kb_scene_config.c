@@ -1,5 +1,4 @@
-#include "../bad_kb_app.h"
-#include "../helpers/ducky_script.h"
+#include "../bad_kb_app_i.h"
 #include "furi_hal_power.h"
 #include "furi_hal_usb.h"
 #include <xtreme/xtreme.h>
@@ -53,11 +52,11 @@ void bad_kb_scene_config_on_enter(void* context) {
         var_item_list, "Connection", 2, bad_kb_scene_config_connection_callback, bad_kb);
     variable_item_set_current_value_index(item, bad_kb->is_bt);
     variable_item_set_current_value_text(item, bad_kb->is_bt ? "BT" : "USB");
-    if(bad_kb->has_usb_id) {
+    /*if(bad_kb->has_usb_id) {
         variable_item_set_locked(item, true, "Script has\nID cmd!\nLocked to\nUSB Mode!");
     } else if(bad_kb->has_bt_id) {
         variable_item_set_locked(item, true, "Script has\nBT_ID cmd!\nLocked to\nBT Mode!");
-    }
+    }*/
 
     if(bad_kb->is_bt) {
         item = variable_item_list_add(
@@ -143,7 +142,7 @@ bool bad_kb_scene_config_on_event(void* context, SceneManagerEvent event) {
                 scene_manager_next_scene(bad_kb->scene_manager, BadKbSceneConfigBtMac);
                 break;
             case VarItemListIndexBtRandomizeMac:
-                furi_hal_random_fill_buf(bad_kb->config.bt_mac, BAD_KB_MAC_LEN);
+                furi_hal_random_fill_buf(bad_kb->config.ble.mac, sizeof(bad_kb->config.ble.mac));
                 bad_kb_config_refresh(bad_kb);
                 break;
             default:
@@ -167,8 +166,8 @@ bool bad_kb_scene_config_on_event(void* context, SceneManagerEvent event) {
             case VarItemListIndexUsbRandomizeVidPid:
                 furi_hal_random_fill_buf(
                     (void*)bad_kb->usb_vidpid_buf, sizeof(bad_kb->usb_vidpid_buf));
-                bad_kb->config.usb_cfg.vid = bad_kb->usb_vidpid_buf[0];
-                bad_kb->config.usb_cfg.pid = bad_kb->usb_vidpid_buf[1];
+                bad_kb->config.usb.vid = bad_kb->usb_vidpid_buf[0];
+                bad_kb->config.usb.pid = bad_kb->usb_vidpid_buf[1];
                 bad_kb_config_refresh(bad_kb);
                 break;
             default:

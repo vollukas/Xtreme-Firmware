@@ -24,7 +24,7 @@
 /* Настройки */
 #define SK6805_LED_PIN &led_pin // LED connection port
 
-#ifdef FURI_DEBUG
+#if false
 #define DEBUG_PIN &gpio_ext_pa7
 #define DEBUG_INIT() \
     furi_hal_gpio_init(DEBUG_PIN, GpioModeOutputPushPull, GpioPullNo, GpioSpeedVeryHigh)
@@ -60,7 +60,7 @@ void SK6805_set_led_color(uint8_t led_index, uint8_t r, uint8_t g, uint8_t b) {
 void SK6805_update() {
     FURI_LOG_T(TAG, "update");
     SK6805_init();
-    furi_kernel_lock();
+    FURI_CRITICAL_ENTER();
     uint32_t end;
     // Sequential sending LEDs
     for(uint8_t lednumber = 0; lednumber < SK6805_LED_COUNT; lednumber++) {
@@ -100,5 +100,5 @@ void SK6805_update() {
             }
         }
     }
-    furi_kernel_unlock();
+    FURI_CRITICAL_EXIT();
 }
