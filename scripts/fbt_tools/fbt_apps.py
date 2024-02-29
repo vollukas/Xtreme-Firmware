@@ -23,22 +23,20 @@ class ApplicationsCGenerator:
         FlipperAppType.SYSTEM: ("FlipperInternalApplication", "FLIPPER_SYSTEM_APPS"),
         FlipperAppType.APP: ("FlipperInternalApplication", "FLIPPER_APPS"),
         FlipperAppType.DEBUG: ("FlipperInternalApplication", "FLIPPER_DEBUG_APPS"),
+        FlipperAppType.SETTINGS: (
+            "FlipperInternalApplication",
+            "FLIPPER_SETTINGS_APPS",
+        ),
         FlipperAppType.STARTUP: (
             "FlipperInternalOnStartHook",
             "FLIPPER_ON_SYSTEM_START",
         ),
     }
 
-    EXTERNAL_TYPE_MAP = {
-        FlipperAppType.MENUEXTERNAL: (
-            "FlipperExternalApplication",
-            "FLIPPER_EXTERNAL_APPS",
-        ),
-        FlipperAppType.SETTINGS: (
-            "FlipperExternalApplication",
-            "FLIPPER_SETTINGS_APPS",
-        ),
-    }
+    APP_EXTERNAL_TYPE = (
+        "FlipperExternalApplication",
+        "FLIPPER_EXTERNAL_APPS",
+    )
 
     def __init__(self, buildset: AppBuildset, autorun_app: str = ""):
         self.buildset = buildset
@@ -58,19 +56,20 @@ class ApplicationsCGenerator:
      .appid = "{app.appid}", 
      .stack_size = {app.stack_size},
      .icon = {f"&{app.icon}" if app.icon else "NULL"},
-     .flags = {'|'.join(f"FlipperApplicationFlag{flag}" for flag in app.flags)} }}"""
+     .flags = {'|'.join(f"FlipperInternalApplicationFlag{flag}" for flag in app.flags)} }}"""
 
     def get_external_app_descr(self, app: FlipperApplication):
         app_path = "/ext/apps"
         if app.fap_category:
             app_path += f"/{app.fap_category}"
+        else:
+            app_path += "/assets"
         app_path += f"/{app.appid}.fap"
         return f"""
     {{
      .name = "{app.name}",
      .icon = {f"&{app.icon}" if app.icon else "NULL"},
-     .path = "{app_path}",
-     .flags = {'|'.join(f"FlipperApplicationFlag{flag}" for flag in app.flags)} }}"""
+     .path = "{app_path}" }}"""
 
     def generate(self):
         contents = [
@@ -103,15 +102,12 @@ class ApplicationsCGenerator:
                 ]
             )
 
-        for apptype in self.EXTERNAL_TYPE_MAP:
-            entry_type, entry_block = self.EXTERNAL_TYPE_MAP[apptype]
-            external_apps = self.buildset.get_apps_of_type(apptype)
-            contents.append(f"const {entry_type} {entry_block}[] = {{")
-            contents.append(",\n".join(map(self.get_external_app_descr, external_apps)))
-            contents.append("};")
-            contents.append(
-                f"const size_t {entry_block}_COUNT = COUNT_OF({entry_block});"
-            )
+        entry_type, entry_block = self.APP_EXTERNAL_TYPE
+        external_apps = self.buildset.get_apps_of_type(FlipperAppType.MENUEXTERNAL)
+        contents.append(f"const {entry_type} {entry_block}[] = {{")
+        contents.append(",\n".join(map(self.get_external_app_descr, external_apps)))
+        contents.append("};")
+        contents.append(f"const size_t {entry_block}_COUNT = COUNT_OF({entry_block});")
 
         return "\n".join(contents)
 

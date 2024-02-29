@@ -37,7 +37,6 @@ extern "C" {
 #define SLIX_TYPE_FEATURE_EAS (1U << 4)
 #define SLIX_TYPE_FEATURE_SIGNATURE (1U << 5)
 #define SLIX_TYPE_FEATURE_PROTECTION (1U << 6)
-#define SLIX_TYPE_FEATURE_NFC_SYSTEM_INFO (1U << 7)
 
 typedef uint32_t SlixTypeFeatures;
 
@@ -57,9 +56,7 @@ typedef enum {
     SlixTypeSlixS,
     SlixTypeSlixL,
     SlixTypeSlix2,
-
     SlixTypeCount,
-    SlixTypeUnknown,
 } SlixType;
 
 typedef enum {
@@ -74,7 +71,6 @@ typedef enum {
 typedef uint32_t SlixPassword;
 typedef uint8_t SlixSignature[SLIX_SIGNATURE_SIZE];
 typedef bool SlixPrivacy;
-typedef uint16_t SlixRandomNumber;
 
 typedef struct {
     uint8_t pointer;

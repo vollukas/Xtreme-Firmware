@@ -4,9 +4,6 @@
 #include <furi.h>
 #include <stdint.h>
 
-#define TEXT_BOX_MAX_SYMBOL_WIDTH (10)
-#define TEXT_BOX_LINE_WIDTH (120)
-
 struct TextBox {
     View* view;
 
@@ -81,11 +78,13 @@ static void text_box_insert_endline(Canvas* canvas, TextBoxModel* model) {
     const char* str = model->text;
     size_t line_num = 0;
 
+    const size_t text_width = 120;
+
     while(str[i] != '\0') {
         char symb = str[i++];
         if(symb != '\n') {
             size_t glyph_width = canvas_glyph_width(canvas, symb);
-            if(line_width + glyph_width > TEXT_BOX_LINE_WIDTH) {
+            if(line_width + glyph_width > text_width) {
                 line_num++;
                 line_width = 0;
                 furi_string_push_back(model->text_formatted, '\n');
@@ -117,10 +116,6 @@ static void text_box_insert_endline(Canvas* canvas, TextBoxModel* model) {
 
 static void text_box_view_draw_callback(Canvas* canvas, void* _model) {
     TextBoxModel* model = _model;
-
-    if(!model->text) {
-        return;
-    }
 
     canvas_clear(canvas);
     if(model->font == TextBoxFontText) {
@@ -217,7 +212,6 @@ void text_box_reset(TextBox* text_box) {
             furi_string_set(model->text_formatted, "");
             model->font = TextBoxFontText;
             model->focus = TextBoxFocusStart;
-            model->formatted = false;
         },
         true);
 }
@@ -225,8 +219,6 @@ void text_box_reset(TextBox* text_box) {
 void text_box_set_text(TextBox* text_box, const char* text) {
     furi_assert(text_box);
     furi_assert(text);
-    size_t str_length = strlen(text);
-    size_t formating_margin = str_length * TEXT_BOX_MAX_SYMBOL_WIDTH / TEXT_BOX_LINE_WIDTH;
 
     with_view_model(
         text_box->view,
@@ -234,7 +226,7 @@ void text_box_set_text(TextBox* text_box, const char* text) {
         {
             model->text = text;
             furi_string_reset(model->text_formatted);
-            furi_string_reserve(model->text_formatted, str_length + formating_margin);
+            furi_string_reserve(model->text_formatted, strlen(text));
             model->formatted = false;
         },
         true);

@@ -25,8 +25,7 @@ typedef struct {
 
 FuriHalIbutton* furi_hal_ibutton = NULL;
 
-static void furi_hal_ibutton_emulate_isr(void* context) {
-    UNUSED(context);
+static void furi_hal_ibutton_emulate_isr() {
     if(LL_TIM_IsActiveFlag_UPDATE(FURI_HAL_IBUTTON_TIMER)) {
         LL_TIM_ClearFlag_UPDATE(FURI_HAL_IBUTTON_TIMER);
         furi_hal_ibutton->callback(furi_hal_ibutton->context);

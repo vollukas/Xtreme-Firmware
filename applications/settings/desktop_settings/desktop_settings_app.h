@@ -58,5 +58,4 @@ typedef struct {
     bool save_settings;
 } DesktopSettingsApp;
 
-const char* desktop_settings_app_get_keybind(DesktopSettingsApp* app);
-bool desktop_settings_app_set_keybind(DesktopSettingsApp* app, const char* value);
+char* desktop_settings_app_get_keybind(DesktopSettingsApp* app);

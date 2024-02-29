@@ -1,20 +1,17 @@
 #include "gap.h"
 
 #include "app_common.h"
-#include <core/mutex.h>
-#include "furi_ble/event_dispatcher.h"
 #include <ble/ble.h>
 
 #include <furi_hal.h>
 #include <furi.h>
-#include <stdint.h>
 
-#define TAG "BleGap"
+#define TAG "BtGap"
 
 #define FAST_ADV_TIMEOUT 30000
 #define INITIAL_ADV_TIMEOUT 60000
 
-#define GAP_INTERVAL_TO_MS(x) (uint16_t)((x) * 1.25)
+#define GAP_INTERVAL_TO_MS(x) (uint16_t)((x)*1.25)
 
 typedef struct {
     uint16_t gap_svc_handle;
@@ -101,7 +98,7 @@ static void gap_verify_connection_parameters(Gap* gap) {
     }
 }
 
-BleEventFlowStatus ble_event_app_notification(void* pckt) {
+SVCCTL_UserEvtFlowStatus_t SVCCTL_App_Notification(void* pckt) {
     hci_event_pckt* event_pckt;
     evt_le_meta_event* meta_evt;
     evt_blecore_aci* blue_evt;
@@ -296,7 +293,7 @@ BleEventFlowStatus ble_event_app_notification(void* pckt) {
     if(gap) {
         furi_mutex_release(gap->state_mutex);
     }
-    return BleEventFlowEnable;
+    return SVCCTL_UserEvtFlowEnable;
 }
 
 static void set_advertisment_service_uid(uint8_t* uid, uint8_t uid_len) {
@@ -372,33 +369,36 @@ static void gap_init_svc(Gap* gap) {
     // Set default PHY
     hci_le_set_default_phy(ALL_PHYS_PREFERENCE, TX_2M_PREFERRED, RX_2M_PREFERRED);
     // Set I/O capability
-    bool bonding_mode = gap->config->bonding_mode;
-    uint8_t cfg_mitm_protection = CFG_MITM_PROTECTION;
-    uint8_t cfg_used_fixed_pin = CFG_USED_FIXED_PIN;
     bool keypress_supported = false;
+    // New things below
+    uint8_t conf_mitm = CFG_MITM_PROTECTION;
+    uint8_t conf_used_fixed_pin = CFG_USED_FIXED_PIN;
+    bool conf_bonding = gap->config->bonding_mode;
+
     if(gap->config->pairing_method == GapPairingPinCodeShow) {
         aci_gap_set_io_capability(IO_CAP_DISPLAY_ONLY);
     } else if(gap->config->pairing_method == GapPairingPinCodeVerifyYesNo) {
         aci_gap_set_io_capability(IO_CAP_DISPLAY_YES_NO);
         keypress_supported = true;
     } else if(gap->config->pairing_method == GapPairingNone) {
-        // "Just works" pairing method (iOS accepts it, it seems Android and Linux don't)
-        bonding_mode = false;
-        cfg_mitm_protection = MITM_PROTECTION_NOT_REQUIRED;
-        cfg_used_fixed_pin = USE_FIXED_PIN_FOR_PAIRING_ALLOWED;
-        // If "just works" isn't supported, we want the numeric comparaison method
+        // Just works pairing method (IOS accept it, it seems android and linux doesn't)
+        conf_mitm = 0;
+        conf_used_fixed_pin = 0;
+        conf_bonding = false;
+        // if just works isn't supported, we want the numeric comparaison method
         aci_gap_set_io_capability(IO_CAP_DISPLAY_YES_NO);
         keypress_supported = true;
     }
+
     // Setup  authentication
     aci_gap_set_authentication_requirement(
-        bonding_mode,
-        cfg_mitm_protection,
+        conf_bonding,
+        conf_mitm,
         CFG_SC_SUPPORT,
         keypress_supported,
         CFG_ENCRYPTION_KEY_SIZE_MIN,
         CFG_ENCRYPTION_KEY_SIZE_MAX,
-        cfg_used_fixed_pin,
+        conf_used_fixed_pin, // 0x0 for no pin
         0,
         CFG_IDENTITY_ADDRESS);
     // Configure whitelist
@@ -409,8 +409,6 @@ static void gap_advertise_start(GapState new_state) {
     tBleStatus status;
     uint16_t min_interval;
     uint16_t max_interval;
-
-    FURI_LOG_I(TAG, "Start: %d", new_state);
 
     if(new_state == GapStateAdvFast) {
         min_interval = 0x80; // 80 ms
@@ -447,6 +445,8 @@ static void gap_advertise_start(GapState new_state) {
         0);
     if(status) {
         FURI_LOG_E(TAG, "set_discoverable failed %d", status);
+    } else {
+        FURI_LOG_D(TAG, "set_discoverable success");
     }
     gap->state = new_state;
     GapEvent event = {.type = GapEventTypeStartAdvertising};
@@ -454,8 +454,7 @@ static void gap_advertise_start(GapState new_state) {
     furi_timer_start(gap->advertise_timer, INITIAL_ADV_TIMEOUT);
 }
 
-static void gap_advertise_stop(void) {
-    FURI_LOG_I(TAG, "Stop");
+static void gap_advertise_stop() {
     tBleStatus ret;
     if(gap->state > GapStateIdle) {
         if(gap->state == GapStateConnected) {
@@ -481,7 +480,7 @@ static void gap_advertise_stop(void) {
     gap->on_event_cb(event, gap->context);
 }
 
-void gap_start_advertising(void) {
+void gap_start_advertising() {
     furi_mutex_acquire(gap->state_mutex, FuriWaitForever);
     if(gap->state == GapStateIdle) {
         gap->state = GapStateStartingAdv;
@@ -493,7 +492,7 @@ void gap_start_advertising(void) {
     furi_mutex_release(gap->state_mutex);
 }
 
-void gap_stop_advertising(void) {
+void gap_stop_advertising() {
     furi_mutex_acquire(gap->state_mutex, FuriWaitForever);
     if(gap->state > GapStateIdle) {
         FURI_LOG_I(TAG, "Stop advertising");
@@ -522,7 +521,8 @@ bool gap_init(GapConfig* config, GapEventCallback on_event_cb, void* context) {
     // Initialization of GATT & GAP layer
     gap->service.adv_name = config->adv_name;
     gap_init_svc(gap);
-    ble_event_dispatcher_init();
+    // Initialization of the BLE Services
+    SVCCTL_Init();
     // Initialization of the GAP state
     gap->state_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     gap->state = GapStateIdle;
@@ -548,7 +548,6 @@ bool gap_init(GapConfig* config, GapEventCallback on_event_cb, void* context) {
     // Set callback
     gap->on_event_cb = on_event_cb;
     gap->context = context;
-
     return true;
 }
 
@@ -563,7 +562,7 @@ uint32_t gap_get_remote_conn_rssi(int8_t* rssi) {
     return 0;
 }
 
-GapState gap_get_state(void) {
+GapState gap_get_state() {
     GapState state;
     if(gap) {
         furi_mutex_acquire(gap->state_mutex, FuriWaitForever);
@@ -575,7 +574,7 @@ GapState gap_get_state(void) {
     return state;
 }
 
-void gap_thread_stop(void) {
+void gap_thread_stop() {
     if(gap) {
         furi_mutex_acquire(gap->state_mutex, FuriWaitForever);
         gap->enable_adv = false;
@@ -588,8 +587,6 @@ void gap_thread_stop(void) {
         furi_mutex_free(gap->state_mutex);
         furi_message_queue_free(gap->command_queue);
         furi_timer_free(gap->advertise_timer);
-
-        ble_event_dispatcher_reset();
         free(gap);
         gap = NULL;
     }
@@ -619,10 +616,4 @@ static int32_t gap_app(void* context) {
     }
 
     return 0;
-}
-
-void gap_emit_ble_beacon_status_event(bool active) {
-    GapEvent event = {.type = active ? GapEventTypeBeaconStart : GapEventTypeBeaconStop};
-    gap->on_event_cb(event, gap->context);
-    FURI_LOG_I(TAG, "Beacon status event: %d", active);
 }

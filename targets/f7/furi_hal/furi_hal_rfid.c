@@ -315,8 +315,7 @@ void furi_hal_rfid_tim_read_capture_stop() {
     furi_hal_bus_disable(RFID_CAPTURE_TIM_BUS);
 }
 
-static void furi_hal_rfid_dma_isr(void* context) {
-    UNUSED(context);
+static void furi_hal_rfid_dma_isr() {
 #if RFID_DMA_CH1_CHANNEL == LL_DMA_CHANNEL_1
     if(LL_DMA_IsActiveFlag_HT1(RFID_DMA)) {
         LL_DMA_ClearFlag_HT1(RFID_DMA);

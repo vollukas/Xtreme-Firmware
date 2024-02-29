@@ -21,6 +21,7 @@ const char* const menu_style_names[MenuStyleCount] = {
     "PS4",
     "Vertical",
     "C64",
+    "Eurocorp",
     "Compact",
     "Terminal",
 };

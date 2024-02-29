@@ -39,7 +39,6 @@ typedef enum {
     MfClassicErrorNotPresent,
     MfClassicErrorProtocol,
     MfClassicErrorAuth,
-    MfClassicErrorPartialRead,
     MfClassicErrorTimeout,
 } MfClassicError;
 

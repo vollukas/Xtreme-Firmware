@@ -1,1 +1,1 @@
-#include <infrared/infrared_last_settings.c>
+#include <applications/main/infrared/infrared_last_settings.c>

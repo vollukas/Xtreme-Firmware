@@ -30,7 +30,7 @@ typedef struct {
 typedef struct {
     LocaleDateFormat date_format;
     LocaleTimeFormat time_format;
-    DateTime datetime;
+    FuriHalRtcDateTime datetime;
     FuriMutex* mutex;
     FuriMessageQueue* event_queue;
     uint32_t timer_start_timestamp;

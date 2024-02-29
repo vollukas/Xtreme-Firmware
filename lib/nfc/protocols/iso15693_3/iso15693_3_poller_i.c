@@ -32,7 +32,17 @@ static Iso15693_3Error iso15693_3_poller_filter_error(Iso15693_3Error error) {
     }
 }
 
-Iso15693_3Error iso15693_3_poller_send_frame(
+static Iso15693_3Error iso15693_3_poller_prepare_trx(Iso15693_3Poller* instance) {
+    furi_assert(instance);
+
+    if(instance->state == Iso15693_3PollerStateIdle) {
+        return iso15693_3_poller_activate(instance, NULL);
+    }
+
+    return Iso15693_3ErrorNone;
+}
+
+static Iso15693_3Error iso15693_3_poller_frame_exchange(
     Iso15693_3Poller* instance,
     const BitBuffer* tx_buffer,
     BitBuffer* rx_buffer,
@@ -146,7 +156,7 @@ Iso15693_3Error iso15693_3_poller_inventory(Iso15693_3Poller* instance, uint8_t*
     Iso15693_3Error ret;
 
     do {
-        ret = iso15693_3_poller_send_frame(
+        ret = iso15693_3_poller_frame_exchange(
             instance, instance->tx_buffer, instance->rx_buffer, ISO15693_3_FDT_POLL_FC);
         if(ret != Iso15693_3ErrorNone) break;
 
@@ -173,7 +183,7 @@ Iso15693_3Error
     Iso15693_3Error ret;
 
     do {
-        ret = iso15693_3_poller_send_frame(
+        ret = iso15693_3_poller_frame_exchange(
             instance, instance->tx_buffer, instance->rx_buffer, ISO15693_3_FDT_POLL_FC);
         if(ret != Iso15693_3ErrorNone) break;
 
@@ -271,6 +281,23 @@ Iso15693_3Error iso15693_3_poller_get_blocks_security(
             &data[start_block_num], block_count_per_query, instance->rx_buffer);
         if(ret != Iso15693_3ErrorNone) break;
     }
+
+    return ret;
+}
+
+Iso15693_3Error iso15693_3_poller_send_frame(
+    Iso15693_3Poller* instance,
+    const BitBuffer* tx_buffer,
+    BitBuffer* rx_buffer,
+    uint32_t fwt) {
+    Iso15693_3Error ret;
+
+    do {
+        ret = iso15693_3_poller_prepare_trx(instance);
+        if(ret != Iso15693_3ErrorNone) break;
+
+        ret = iso15693_3_poller_frame_exchange(instance, tx_buffer, rx_buffer, fwt);
+    } while(false);
 
     return ret;
 }

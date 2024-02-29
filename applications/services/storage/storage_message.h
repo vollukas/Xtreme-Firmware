@@ -104,10 +104,6 @@ typedef struct {
     SDInfo* info;
 } SAInfo;
 
-typedef struct {
-    File* image;
-} SAVirtualInit;
-
 typedef union {
     SADataFOpen fopen;
     SADataFRead fread;
@@ -131,8 +127,6 @@ typedef union {
     SADataRename rename;
 
     SAInfo sdinfo;
-
-    SAVirtualInit virtualinit;
 } SAData;
 
 typedef union {
@@ -173,11 +167,6 @@ typedef enum {
 
     StorageCommandFileExpand,
     StorageCommandCommonRename,
-    StorageCommandVirtualInit,
-    StorageCommandVirtualFormat,
-    StorageCommandVirtualMount,
-    StorageCommandVirtualUnmount,
-    StorageCommandVirtualQuit,
 } StorageCommand;
 
 typedef struct {

@@ -1,5 +1,6 @@
 #include "st25tb.h"
 
+#include "core/string.h"
 #include "flipper_format.h"
 #include <furi.h>
 

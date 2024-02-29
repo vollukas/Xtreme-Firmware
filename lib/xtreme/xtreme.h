@@ -34,6 +34,7 @@ typedef enum {
     MenuStylePs4,
     MenuStyleVertical,
     MenuStyleC64,
+    MenuStyleEurocorp,
     MenuStyleCompact,
     MenuStyleTerminal,
     MenuStyleCount,
@@ -44,11 +45,6 @@ typedef enum {
     SpiExtra, // cs on pc3
     SpiCount,
 } SpiHandle;
-
-_Static_assert(sizeof(MenuStyle) == sizeof(uint8_t), "enum too big, fix load/save");
-_Static_assert(sizeof(BatteryIcon) == sizeof(uint8_t), "enum too big, fix load/save");
-_Static_assert(sizeof(SpiHandle) == sizeof(uint8_t), "enum too big, fix load/save");
-_Static_assert(sizeof(FuriHalSerialId) == sizeof(uint8_t), "enum too big, fix load/save");
 
 typedef struct {
     char asset_pack[XTREME_ASSETS_PACK_NAME_LEN];
@@ -90,18 +86,27 @@ typedef struct {
     bool file_naming_prefix_after;
 } XtremeSettings;
 
+typedef enum {
+    FontSwapPrimary,
+    FontSwapSecondary,
+    FontSwapKeyboard,
+    FontSwapBigNumbers,
+    FontSwapBatteryPercent,
+    FontSwapCount,
+} FontSwap;
+
 typedef struct {
     bool is_nsfw; // TODO: replace with packs text support
-    uint8_t* fonts[FontTotalNumber];
-    CanvasFontParameters* font_params[FontTotalNumber];
+    uint8_t* fonts[FontSwapCount];
+    CanvasFontParameters* font_params[FontSwapCount];
 } XtremeAssets;
 
-void xtreme_settings_load();
-void xtreme_settings_save();
+void XTREME_SETTINGS_LOAD();
+void XTREME_SETTINGS_SAVE();
 extern XtremeSettings xtreme_settings;
 
-void xtreme_assets_init();
-void xtreme_assets_free();
+void XTREME_ASSETS_LOAD();
+void XTREME_ASSETS_FREE();
 extern XtremeAssets xtreme_assets;
 
 #ifdef __cplusplus

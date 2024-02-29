@@ -4,12 +4,10 @@
  */
 
 #pragma once
-
-#include "../widget.h"
-#include "widget_element.h"
 #include <furi.h>
 #include <gui/view.h>
 #include <input/input.h>
+#include "widget_element.h"
 
 #ifdef __cplusplus
 extern "C" {

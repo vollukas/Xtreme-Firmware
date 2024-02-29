@@ -47,7 +47,6 @@ typedef struct {
     FuriHalSerialHandle* log_serial;
 
     // Expansion detection
-    FuriHalSerialHandle* expansion_serial;
     FuriHalSerialControlExpansionCallback expansion_cb;
     void* expansion_ctx;
 } FuriHalSerialControl;
@@ -59,36 +58,7 @@ static void furi_hal_serial_control_log_callback(const uint8_t* data, size_t siz
     furi_hal_serial_tx(handle, data, size);
 }
 
-static void furi_hal_serial_control_expansion_irq_callback(void* context) {
-    UNUSED(context);
-
-    FuriHalSerialControlMessage message;
-    message.type = FuriHalSerialControlMessageTypeExpansionIrq;
-    message.api_lock = NULL;
-    furi_message_queue_put(furi_hal_serial_control->queue, &message, 0);
-}
-
-static void
-    furi_hal_serial_control_enable_expansion_irq(FuriHalSerialHandle* handle, bool enable) {
-    const GpioPin* gpio = furi_hal_serial_get_gpio_pin(handle, FuriHalSerialDirectionRx);
-
-    if(enable) {
-        furi_hal_serial_disable_direction(handle, FuriHalSerialDirectionRx);
-        furi_hal_gpio_add_int_callback(gpio, furi_hal_serial_control_expansion_irq_callback, NULL);
-        furi_hal_gpio_init(gpio, GpioModeInterruptFall, GpioPullUp, GpioSpeedLow);
-    } else {
-        furi_hal_gpio_remove_int_callback(gpio);
-        furi_hal_serial_enable_direction(handle, FuriHalSerialDirectionRx);
-    }
-}
-
 static void furi_hal_serial_control_log_set_handle(FuriHalSerialHandle* handle) {
-    // Disable expansion module detection before reconfiguring UARTs
-    if(furi_hal_serial_control->expansion_serial) {
-        furi_hal_serial_control_enable_expansion_irq(
-            furi_hal_serial_control->expansion_serial, false);
-    }
-
     if(furi_hal_serial_control->log_serial) {
         furi_log_remove_handler(furi_hal_serial_control->log_handler);
         furi_hal_serial_deinit(furi_hal_serial_control->log_serial);
@@ -104,12 +74,15 @@ static void furi_hal_serial_control_log_set_handle(FuriHalSerialHandle* handle) 
         furi_hal_serial_control->log_handler.context = furi_hal_serial_control->log_serial;
         furi_log_add_handler(furi_hal_serial_control->log_handler);
     }
+}
 
-    // Re-enable expansion module detection (if applicable)
-    if(furi_hal_serial_control->expansion_serial) {
-        furi_hal_serial_control_enable_expansion_irq(
-            furi_hal_serial_control->expansion_serial, true);
-    }
+static void furi_hal_serial_control_expansion_irq_callback(void* context) {
+    UNUSED(context);
+
+    FuriHalSerialControlMessage message;
+    message.type = FuriHalSerialControlMessageTypeExpansionIrq;
+    message.api_lock = NULL;
+    furi_message_queue_put(furi_hal_serial_control->queue, &message, 0);
 }
 
 static bool furi_hal_serial_control_handler_stop(void* input, void* output) {
@@ -120,21 +93,16 @@ static bool furi_hal_serial_control_handler_stop(void* input, void* output) {
 
 static bool furi_hal_serial_control_handler_acquire(void* input, void* output) {
     FuriHalSerialId serial_id = *(FuriHalSerialId*)input;
-    FuriHalSerialHandle* handle = &furi_hal_serial_control->handles[serial_id];
-
-    if(handle->in_use) {
+    if(furi_hal_serial_control->handles[serial_id].in_use) {
         *(FuriHalSerialHandle**)output = NULL;
     } else {
         // Logging
         if(furi_hal_serial_control->log_config_serial_id == serial_id) {
             furi_hal_serial_control_log_set_handle(NULL);
-            // Expansion
-        } else if(furi_hal_serial_control->expansion_serial == handle) {
-            furi_hal_serial_control_enable_expansion_irq(handle, false);
         }
         // Return handle
-        handle->in_use = true;
-        *(FuriHalSerialHandle**)output = handle;
+        furi_hal_serial_control->handles[serial_id].in_use = true;
+        *(FuriHalSerialHandle**)output = &furi_hal_serial_control->handles[serial_id];
     }
 
     return true;
@@ -148,12 +116,9 @@ static bool furi_hal_serial_control_handler_release(void* input, void* output) {
     furi_hal_serial_deinit(handle);
     handle->in_use = false;
 
+    // Return back logging
     if(furi_hal_serial_control->log_config_serial_id == handle->id) {
-        // Return back logging
         furi_hal_serial_control_log_set_handle(handle);
-    } else if(furi_hal_serial_control->expansion_serial == handle) {
-        // Re-enable expansion
-        furi_hal_serial_control_enable_expansion_irq(handle, true);
     }
 
     return true;
@@ -192,23 +157,23 @@ static bool furi_hal_serial_control_handler_expansion_set_callback(void* input, 
 
     FuriHalSerialControlMessageExpCallback* message_input = input;
     FuriHalSerialHandle* handle = &furi_hal_serial_control->handles[message_input->id];
+    const GpioPin* gpio = furi_hal_serial_get_gpio_pin(handle, FuriHalSerialDirectionRx);
 
-    const bool enable_irq = message_input->callback != NULL;
-
-    if(enable_irq) {
-        furi_check(furi_hal_serial_control->expansion_serial == NULL);
+    if(message_input->callback) {
         furi_check(furi_hal_serial_control->expansion_cb == NULL);
-        furi_hal_serial_control->expansion_serial = handle;
+
+        furi_hal_serial_disable_direction(handle, FuriHalSerialDirectionRx);
+        furi_hal_gpio_add_int_callback(gpio, furi_hal_serial_control_expansion_irq_callback, NULL);
+        furi_hal_gpio_init(gpio, GpioModeInterruptFall, GpioPullUp, GpioSpeedLow);
     } else {
-        furi_check(furi_hal_serial_control->expansion_serial == handle);
         furi_check(furi_hal_serial_control->expansion_cb != NULL);
-        furi_hal_serial_control->expansion_serial = NULL;
+
+        furi_hal_gpio_remove_int_callback(gpio);
+        furi_hal_serial_enable_direction(handle, FuriHalSerialDirectionRx);
     }
 
     furi_hal_serial_control->expansion_cb = message_input->callback;
     furi_hal_serial_control->expansion_ctx = message_input->context;
-
-    furi_hal_serial_control_enable_expansion_irq(handle, enable_irq);
 
     return true;
 }

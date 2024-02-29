@@ -39,12 +39,7 @@ uint32_t desktop_pin_lock_get_fail_timeout() {
     if(pin_fails < 3) {
         return 0;
     }
-    // Use for loop to avoid including pow() function (4kb of dfu flash)
-    uint32_t mult = 1;
-    for(size_t i = 0; i < pin_fails - 3; i++) {
-        mult *= 2;
-    }
-    return 30 * mult;
+    return 30 * pow(2, pin_fails - 3);
 }
 
 bool desktop_pin_compare(const PinCode* pin_code1, const PinCode* pin_code2) {

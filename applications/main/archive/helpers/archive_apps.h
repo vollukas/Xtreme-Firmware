@@ -1,7 +1,5 @@
 #pragma once
 
-#include "archive_files.h"
-
 typedef enum {
     ArchiveAppTypeU2f,
     ArchiveAppTypeSearch,

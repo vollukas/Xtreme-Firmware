@@ -99,9 +99,7 @@ bool furi_hal_infrared_get_debug_out_status(void) {
     return infrared_external_output;
 }
 
-static void furi_hal_infrared_tim_rx_isr(void* context) {
-    UNUSED(context);
-
+static void furi_hal_infrared_tim_rx_isr() {
     static uint32_t previous_captured_ch2 = 0;
 
     /* Timeout */
@@ -266,8 +264,7 @@ static uint8_t furi_hal_infrared_get_current_dma_tx_buffer(void) {
     return buf_num;
 }
 
-static void furi_hal_infrared_tx_dma_polarity_isr(void* context) {
-    UNUSED(context);
+static void furi_hal_infrared_tx_dma_polarity_isr() {
 #if INFRARED_DMA_CH1_CHANNEL == LL_DMA_CHANNEL_1
     if(LL_DMA_IsActiveFlag_TE1(INFRARED_DMA)) {
         LL_DMA_ClearFlag_TE1(INFRARED_DMA);
@@ -289,8 +286,7 @@ static void furi_hal_infrared_tx_dma_polarity_isr(void* context) {
 #endif
 }
 
-static void furi_hal_infrared_tx_dma_isr(void* context) {
-    UNUSED(context);
+static void furi_hal_infrared_tx_dma_isr() {
 #if INFRARED_DMA_CH2_CHANNEL == LL_DMA_CHANNEL_2
     if(LL_DMA_IsActiveFlag_TE2(INFRARED_DMA)) {
         LL_DMA_ClearFlag_TE2(INFRARED_DMA);

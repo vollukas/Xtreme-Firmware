@@ -18,7 +18,6 @@ static const char* tab_default_paths[] = {
     [ArchiveTabU2f] = "/app:u2f",
     [ArchiveTabApplications] = EXT_PATH("apps"),
     [ArchiveTabSearch] = "/app:search",
-    [ArchiveTabDiskImage] = STORAGE_MNT_PATH_PREFIX,
     [ArchiveTabInternal] = STORAGE_INT_PATH_PREFIX,
     [ArchiveTabBrowser] = STORAGE_EXT_PATH_PREFIX,
 };
@@ -35,13 +34,10 @@ static const char* known_ext[] = {
     [ArchiveFileTypeBadKb] = ".txt",
     [ArchiveFileTypeU2f] = "?",
     [ArchiveFileTypeApplication] = ".fap",
-    [ArchiveFileTypeJS] = ".js",
     [ArchiveFileTypeSearch] = "*",
     [ArchiveFileTypeUpdateManifest] = ".fuf",
-    [ArchiveFileTypeDiskImage] = ".img",
     [ArchiveFileTypeFolder] = "?",
     [ArchiveFileTypeUnknown] = "*",
-    [ArchiveFileTypeAppOrJs] = ".fap|.js",
 };
 
 static const ArchiveFileTypeEnum known_type[] = {
@@ -53,9 +49,8 @@ static const ArchiveFileTypeEnum known_type[] = {
     [ArchiveTabInfrared] = ArchiveFileTypeInfrared,
     [ArchiveTabBadKb] = ArchiveFileTypeBadKb,
     [ArchiveTabU2f] = ArchiveFileTypeU2f,
-    [ArchiveTabApplications] = ArchiveFileTypeAppOrJs,
+    [ArchiveTabApplications] = ArchiveFileTypeApplication,
     [ArchiveTabSearch] = ArchiveFileTypeSearch,
-    [ArchiveTabDiskImage] = ArchiveFileTypeUnknown,
     [ArchiveTabInternal] = ArchiveFileTypeUnknown,
     [ArchiveTabBrowser] = ArchiveFileTypeUnknown,
 };

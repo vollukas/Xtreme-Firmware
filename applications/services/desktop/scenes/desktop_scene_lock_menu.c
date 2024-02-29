@@ -44,7 +44,7 @@ void desktop_scene_lock_menu_save_settings(Desktop* desktop) {
         desktop->lock_menu->save_notification = false;
     }
     if(desktop->lock_menu->save_xtreme) {
-        xtreme_settings_save();
+        XTREME_SETTINGS_SAVE();
         desktop->lock_menu->save_xtreme = false;
     }
     if(desktop->lock_menu->save_bt) {

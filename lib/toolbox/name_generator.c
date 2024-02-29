@@ -49,7 +49,7 @@ void name_generator_make_auto_datetime(
     char* name,
     size_t max_name_size,
     const char* prefix,
-    DateTime* custom_time) {
+    FuriHalRtcDateTime* custom_time) {
     if(!furi_hal_rtc_is_flag_set(FuriHalRtcFlagRandomFilename)) {
         name_generator_make_detailed_datetime(
             name, max_name_size, prefix, custom_time, xtreme_settings.file_naming_prefix_after);
@@ -107,13 +107,13 @@ void name_generator_make_detailed_datetime(
     char* name,
     size_t max_name_size,
     const char* prefix,
-    DateTime* custom_time,
+    FuriHalRtcDateTime* custom_time,
     bool prefix_after) {
     furi_assert(name);
     furi_assert(max_name_size);
     furi_assert(prefix);
 
-    DateTime dateTime;
+    FuriHalRtcDateTime dateTime;
     if(custom_time) {
         dateTime = *custom_time;
     } else {

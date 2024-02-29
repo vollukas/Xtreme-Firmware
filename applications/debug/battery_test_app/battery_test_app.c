@@ -12,8 +12,7 @@ void battery_test_dialog_callback(DialogExResult result, void* context) {
     }
 }
 
-uint32_t battery_test_exit_confirm_view(void* context) {
-    UNUSED(context);
+uint32_t battery_test_exit_confirm_view() {
     return BatteryTestAppViewExitDialog;
 }
 

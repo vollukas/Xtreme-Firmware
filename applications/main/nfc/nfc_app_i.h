@@ -33,7 +33,6 @@
 #include "helpers/nfc_emv_parser.h"
 #include "helpers/mf_classic_key_cache.h"
 #include "helpers/nfc_supported_cards.h"
-#include "helpers/slix_unlock.h"
 
 #include <dialogs/dialogs.h>
 #include <storage/storage.h>
@@ -131,7 +130,6 @@ struct NfcApp {
     NfcListener* listener;
 
     MfUltralightAuth* mf_ul_auth;
-    SlixUnlock* slix_unlock;
     NfcMfClassicDictAttackContext nfc_dict_context;
     Mfkey32Logger* mfkey32_logger;
     MfUserDict* mf_user_dict;

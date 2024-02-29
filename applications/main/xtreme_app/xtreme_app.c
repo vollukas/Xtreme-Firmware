@@ -48,7 +48,7 @@ bool xtreme_app_apply(XtremeApp* app) {
             while(flipper_format_delete_key(file, "Frequency"))
                 ;
             FrequencyList_it(it, app->subghz_static_freqs);
-            for(size_t i = 0; i < FrequencyList_size(app->subghz_static_freqs); i++) {
+            for(uint i = 0; i < FrequencyList_size(app->subghz_static_freqs); i++) {
                 flipper_format_write_uint32(
                     file, "Frequency", FrequencyList_get(app->subghz_static_freqs, i), 1);
             }
@@ -56,7 +56,7 @@ bool xtreme_app_apply(XtremeApp* app) {
             if(!flipper_format_rewind(file)) break;
             while(flipper_format_delete_key(file, "Hopper_frequency"))
                 ;
-            for(size_t i = 0; i < FrequencyList_size(app->subghz_hopper_freqs); i++) {
+            for(uint i = 0; i < FrequencyList_size(app->subghz_hopper_freqs); i++) {
                 flipper_format_write_uint32(
                     file, "Hopper_frequency", FrequencyList_get(app->subghz_hopper_freqs, i), 1);
             }
@@ -116,7 +116,7 @@ bool xtreme_app_apply(XtremeApp* app) {
     }
 
     if(app->save_settings) {
-        xtreme_settings_save();
+        XTREME_SETTINGS_SAVE();
     }
 
     if(app->show_slideshow) {
@@ -131,7 +131,7 @@ bool xtreme_app_apply(XtremeApp* app) {
         view_dispatcher_switch_to_view(app->view_dispatcher, XtremeAppViewPopup);
         return true;
     } else if(app->apply_pack) {
-        xtreme_assets_free();
+        XTREME_ASSETS_FREE();
         popup_set_header(app->popup, "Reloading...", 64, 26, AlignCenter, AlignCenter);
         popup_set_text(app->popup, "Applying asset pack...", 64, 40, AlignCenter, AlignCenter);
         popup_set_callback(app->popup, NULL);
@@ -139,7 +139,7 @@ bool xtreme_app_apply(XtremeApp* app) {
         popup_set_timeout(app->popup, 0);
         popup_disable_timeout(app->popup);
         view_dispatcher_switch_to_view(app->view_dispatcher, XtremeAppViewPopup);
-        xtreme_assets_init();
+        XTREME_ASSETS_LOAD();
     }
 
     furi_record_close(RECORD_STORAGE);

@@ -21,13 +21,10 @@ typedef enum {
     ArchiveFileTypeBadKb,
     ArchiveFileTypeU2f,
     ArchiveFileTypeApplication,
-    ArchiveFileTypeJS,
     ArchiveFileTypeSearch,
     ArchiveFileTypeUpdateManifest,
-    ArchiveFileTypeDiskImage,
     ArchiveFileTypeFolder,
     ArchiveFileTypeUnknown,
-    ArchiveFileTypeAppOrJs,
     ArchiveFileTypeLoading,
 } ArchiveFileTypeEnum;
 
