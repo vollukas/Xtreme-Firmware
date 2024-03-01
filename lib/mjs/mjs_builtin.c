@@ -139,11 +139,11 @@ void mjs_init_builtin(struct mjs* mjs, mjs_val_t obj) {
     /*
     * Populate JSON.parse() and JSON.stringify()
     */
-    // v = mjs_mk_object(mjs);
-    // mjs_set(
-    //     mjs, v, "stringify", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_op_json_stringify));
-    // mjs_set(mjs, v, "parse", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_op_json_parse));
-    // mjs_set(mjs, obj, "JSON", ~0, v);
+    v = mjs_mk_object(mjs);
+    mjs_set(
+        mjs, v, "stringify", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_op_json_stringify));
+    mjs_set(mjs, v, "parse", ~0, mjs_mk_foreign_func(mjs, (mjs_func_ptr_t)mjs_op_json_parse));
+    mjs_set(mjs, obj, "JSON", ~0, v);
 
     /*
     * Populate Object.create()
