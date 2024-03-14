@@ -2,12 +2,22 @@ name: 'Build'
 
 on:
   push:
+    paths:
+      - "**.c"
+      - "**.h"
+      - "**.bin"
+      - "**.inc"
+      - "assets/**"
+
     branches:
       - dev
       - main
     tags:
       - '*'
   pull_request:
+
+  repository_dispatch:
+    types: [app_update]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
